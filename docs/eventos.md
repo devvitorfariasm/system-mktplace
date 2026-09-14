@@ -1,6 +1,6 @@
 # Contrato de eventos Kafka
 
-Fonte da verdade: `kafka-commons/src/main/java/com/mktplace/commons/events/` (`Topics`, `EventHeaders`, records de evento).
+Fonte da verdade: `src/main/java/com/mktplace/commons/events/` (`Topics`, `EventHeaders`, records de evento).
 Este documento explica as decisões; o código é o contrato.
 
 ## Tópicos
@@ -53,4 +53,4 @@ JSON (UTF-8) do record Java correspondente, sem envelope. Dinheiro é inteiro em
 3. Nunca reutilizar um nome de campo com semântica diferente.
 4. Quando um consumidor não conhece uma versão **maior** que a sua, a mensagem vai para a DLT com `UnsupportedSchemaVersion`, em vez de ser interpretada errado.
 
-Os testes de contrato (`*ContractTest`) comparam o JSON de cada evento com o schema em `kafka-commons/src/test/resources/schemas/<EventType>.v<N>.json`; mudar o payload sem versionar quebra o build.
+Os testes de contrato (`*ContractTest`) comparam o JSON de cada evento com o schema em `src/test/resources/schemas/<EventType>.v<N>.json`; mudar o payload sem versionar quebra o build.

@@ -15,14 +15,16 @@ Núcleo de processamento de pedidos de um marketplace em que **o Kafka não é c
 | Testes | JUnit 5, Mockito, Testcontainers 2 (Kafka + Postgres), JSON Schema |
 | Frontend | React 19, TypeScript, Vite, TanStack Router/Query/Table/Form, Zod, Tailwind v4 |
 
-## Módulos
+## Estrutura
 
-| Módulo | Papel |
+Uma única aplicação Spring Boot e um único `pom.xml`. Cada serviço é um **profile** (`order`, `payment`, `inventory`, `notification`, `audit`) que sobe como processo independente no compose, com seu próprio banco e consumer group.
+
+| Pacote | Papel |
 |---|---|
-| `kafka-commons` | Biblioteca compartilhada: tópicos, headers, publisher com auditoria, retry/DLT, idempotência, chaos, DLQ admin, Problem Details |
-| `order-service` · `payment-service` · `inventory-service` · `notification-service` · `audit-service` | Serviços de negócio (fases 2 a 6) |
-| `gateway` | API Gateway em `:8080` (fase 4) |
-| `web` | Front React (fase 5) |
+| `com.mktplace.commons` | Compartilhado: tópicos, headers, publisher com auditoria, retry/DLT, idempotência, chaos, DLQ admin, Problem Details |
+| `com.mktplace.order` · `payment` · `inventory` · `notification` · `audit` | Serviços de negócio, cada um ativo só no seu profile (fases 2 a 6) |
+| `gateway/` | Nginx em `:8080` roteando por prefixo (fase 4) |
+| `web/` | Front React (fase 5) |
 
 ## Rodando
 
@@ -42,7 +44,7 @@ Variáveis opcionais em [.env.example](.env.example).
 ## Testes
 
 ```bash
-mvn verify        # unitários + integração (Testcontainers exige Docker ativo)
+mvn verify        # unitários + integração com Kafka e Postgres reais (Testcontainers exige Docker ativo)
 ```
 
 ## Documentação

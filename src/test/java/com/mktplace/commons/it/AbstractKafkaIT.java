@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
@@ -19,9 +20,10 @@ import java.util.UUID;
 /**
  * Base dos testes de integração: Kafka (KRaft) + Postgres reais via Testcontainers, iniciados uma vez
  * por JVM e compartilhados pelo contexto Spring cacheado (por isso sem @Container: parar/reiniciar
- * entre classes invalidaria o bootstrap-servers do contexto).
+ * entre classes invalidaria o bootstrap-servers do contexto). Sobe a aplicação real com o profile "test".
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 public abstract class AbstractKafkaIT {
 
     @ServiceConnection

@@ -1,3 +1,4 @@
+# Profile "test": a aplicação real com listeners de apoio (TestOrderListener, AuditTap) e sem Jaeger.
 mktplace:
   service-name: test-service
   admin-token: secret-test-token

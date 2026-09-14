@@ -1,4 +1,5 @@
-# Padrões de todo serviço. O application.yml de cada serviço tem precedência.
+# Configuração comum a todos os serviços. Cada serviço é um profile (application-<serviço>.yml) que define
+# mktplace.service-name, o banco e o consumer group. Variáveis de ambiente têm precedência.
 spring:
   threads:
     virtual:
@@ -13,7 +14,8 @@ spring:
       datetime:
         adjust-dates-to-context-time-zone: false   # preserva o offset original (-03:00) em vez de converter para UTC
   flyway:
-    locations: classpath:db/commons,classpath:db/migration
+    # migrations comuns (idempotência, DLQ) + as do serviço ativo; cada serviço tem seu próprio banco
+    locations: classpath:db/commons,classpath:db/migration/${mktplace.service-name}
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
     producer:
