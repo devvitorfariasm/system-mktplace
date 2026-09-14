@@ -1,6 +1,6 @@
 # Desafio Técnico — Engenheiro(a) de Software Sênior
 
-**Stack obrigatória:** Java 21+ (Spring Boot 3.x) · React 18+ · Apache Kafka · PostgreSQL 15+
+**Stack obrigatória:** Java 21+ (Spring Boot 4.x) · React 18+ · Apache Kafka · PostgreSQL 15+
 **Prazo sugerido:** 5 a 7 dias corridos
 **Entrega:** repositório Git público ou privado (com acesso liberado ao avaliador)
 
@@ -32,7 +32,7 @@ Regras:
 5. `notification-service` consome os eventos terminais (`StockReserved`, `PaymentRejected`, `StockUnavailable`) e registra a notificação.
 6. `order-service` consome todos os eventos de resultado e atualiza o status do pedido (`PAID`, `PAYMENT_FAILED`, `CONFIRMED`, `OUT_OF_STOCK`).
 
-Você pode implementar os quatro serviços como **módulos separados dentro de um monorepo** ou como uma única aplicação Spring Boot com profiles distintos — desde que cada um tenha seu **próprio consumer group** e rode como **processo independente**.
+ implementar os quatro serviços em uma única aplicação Spring Boot com profiles distintos — desde que cada um tenha seu **próprio consumer group** e rode como **processo independente**.
 
 ---
 

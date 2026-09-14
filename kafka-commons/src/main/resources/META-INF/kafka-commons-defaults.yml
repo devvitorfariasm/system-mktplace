@@ -1,0 +1,78 @@
+# Padrões de todo serviço. O application.yml de cada serviço tem precedência.
+spring:
+  threads:
+    virtual:
+      enabled: true
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false   # evolução aditiva de schema não quebra consumidores antigos
+      accept-float-as-int: false
+    datatype:
+      datetime:
+        adjust-dates-to-context-time-zone: false   # preserva o offset original (-03:00) em vez de converter para UTC
+  flyway:
+    locations: classpath:db/commons,classpath:db/migration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        linger.ms: 5
+    consumer:
+      group-id: ${mktplace.service-name}-v1
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        max.poll.records: 50
+    listener:
+      ack-mode: record
+      missing-topics-fatal: false
+      observation-enabled: true
+    template:
+      observation-enabled: true
+    admin:
+      fail-fast: true
+server:
+  shutdown: graceful
+  error:
+    whitelabel:
+      enabled: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  metrics:
+    tags:
+      application: ${mktplace.service-name}
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    metrics:
+      export:
+        enabled: false   # métricas vão por /actuator/prometheus; só traces seguem por OTLP para o Jaeger
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
+mktplace:
+  admin-token: ${ADMIN_TOKEN:change-me-admin-token}
+  zone: ${APP_ZONE:America/Sao_Paulo}
+logging:
+  pattern:
+    level: "%5p [corr=%X{correlationId:-} order=%X{orderId:-} topic=%X{topic:-} p=%X{partition:-} o=%X{offset:-}]"

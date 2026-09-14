@@ -1,0 +1,24 @@
+mktplace:
+  service-name: test-service
+  admin-token: secret-test-token
+  kafka:
+    backoff-initial-ms: 200
+    backoff-multiplier: 2.0
+    backoff-max-ms: 500
+spring:
+  kafka:
+    consumer:
+      properties:
+        session.timeout.ms: 10000
+        heartbeat.interval.ms: 3000
+management:
+  tracing:
+    export:
+      otlp:
+        enabled: false   # sem Jaeger nos testes
+logging:
+  level:
+    org.apache.kafka: WARN
+    org.springframework.kafka: WARN
+    org.testcontainers: WARN
+    com.github.dockerjava: WARN
