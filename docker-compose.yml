@@ -24,6 +24,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: "-Xms384m -Xmx384m"     # nó único de demo; o padrão de 1 GB compete com as JVMs dos serviços
     volumes:
       - kafka-data:/var/lib/kafka/data
     healthcheck:
@@ -41,6 +42,8 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       DYNAMIC_CONFIG_ENABLED: "true"
+      JAVA_OPTS: "-Xmx256m"
+    mem_limit: 512m
     depends_on:
       kafka:
         condition: service_healthy
@@ -70,6 +73,153 @@ services:
       - "16686:16686"   # UI
       - "4317:4317"     # OTLP gRPC
       - "4318:4318"     # OTLP HTTP
+
+  # ---- serviços Java: mesma imagem, um profile por processo ----
+  order-service:
+    build: .
+    image: mktplace-app
+    container_name: mktplace-order
+    environment:
+      SPRING_PROFILES_ACTIVE: order
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-mktplace}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mktplace}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-change-me-admin-token}
+      APP_ZONE: ${APP_ZONE:-America/Sao_Paulo}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k"
+      AUDIT_URL: http://audit-service:8085
+    ports:
+      - "8081:8081"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: on-failure     # o chaos "crash" derruba o processo e o compose sobe de novo (rebalance visível)
+    mem_limit: 640m         # 5 JVMs na mesma máquina: sem limite cada uma tentaria usar 70% do host
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  payment-service:
+    build: .
+    image: mktplace-app
+    container_name: mktplace-payment
+    environment:
+      SPRING_PROFILES_ACTIVE: payment
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-mktplace}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mktplace}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-change-me-admin-token}
+      APP_ZONE: ${APP_ZONE:-America/Sao_Paulo}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k"
+    ports:
+      - "8083:8083"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: on-failure     # o chaos "crash" derruba o processo e o compose sobe de novo (rebalance visível)
+    mem_limit: 640m         # 5 JVMs na mesma máquina: sem limite cada uma tentaria usar 70% do host
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  inventory-service:
+    build: .
+    image: mktplace-app
+    container_name: mktplace-inventory
+    environment:
+      SPRING_PROFILES_ACTIVE: inventory
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-mktplace}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mktplace}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-change-me-admin-token}
+      APP_ZONE: ${APP_ZONE:-America/Sao_Paulo}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k"
+    ports:
+      - "8082:8082"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: on-failure     # o chaos "crash" derruba o processo e o compose sobe de novo (rebalance visível)
+    mem_limit: 640m         # 5 JVMs na mesma máquina: sem limite cada uma tentaria usar 70% do host
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  notification-service:
+    build: .
+    image: mktplace-app
+    container_name: mktplace-notification
+    environment:
+      SPRING_PROFILES_ACTIVE: notification
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-mktplace}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mktplace}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-change-me-admin-token}
+      APP_ZONE: ${APP_ZONE:-America/Sao_Paulo}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k"
+    ports:
+      - "8084:8084"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: on-failure     # o chaos "crash" derruba o processo e o compose sobe de novo (rebalance visível)
+    mem_limit: 640m         # 5 JVMs na mesma máquina: sem limite cada uma tentaria usar 70% do host
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  audit-service:
+    build: .
+    image: mktplace-app
+    container_name: mktplace-audit
+    environment:
+      SPRING_PROFILES_ACTIVE: audit
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-mktplace}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mktplace}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-change-me-admin-token}
+      APP_ZONE: ${APP_ZONE:-America/Sao_Paulo}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k"
+    ports:
+      - "8085:8085"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: on-failure     # o chaos "crash" derruba o processo e o compose sobe de novo (rebalance visível)
+    mem_limit: 640m         # 5 JVMs na mesma máquina: sem limite cada uma tentaria usar 70% do host
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
 volumes:
   kafka-data:

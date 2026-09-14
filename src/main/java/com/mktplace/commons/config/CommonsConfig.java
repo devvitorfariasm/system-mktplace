@@ -3,6 +3,7 @@ package com.mktplace.commons.config;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.time.Clock;
 import java.util.concurrent.ExecutorService;
@@ -11,6 +12,7 @@ import java.util.concurrent.Executors;
 /** Beans transversais do pacote commons. */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(MktplaceProperties.class)
+@EnableScheduling   // OutboxRelay e, na fase 3, o amostrador de lag
 public class CommonsConfig {
 
     /** Relógio único e substituível em testes: todo timestamp de evento/auditoria passa por ele. */

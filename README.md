@@ -29,7 +29,25 @@ Uma única aplicação Spring Boot e um único `pom.xml`. Cada serviço é um **
 ## Rodando
 
 ```bash
-docker compose up --build          # infra + serviços (serviços entram a partir da fase 2)
+docker compose up --build          # infra + os cinco serviços (uma imagem, um profile por container)
+```
+
+| Serviço | Porta | Rotas na fase atual |
+|---|---|---|
+| order-service | 8081 | `POST/GET /api/v1/customers`, `POST/GET /api/v1/orders`, `GET /api/v1/orders/{id}/timeline` |
+| inventory-service | 8082 | `POST/GET /api/v1/products` |
+| payment-service | 8083 | só consumidor (pagamentos nascem de `OrderCreated`) |
+| notification-service | 8084 | só consumidor |
+| audit-service | 8085 | `GET /api/v1/audit/orders/{id}/timeline` |
+| todos | `/admin/**` com `X-Admin-Token` | chaos, DLQ, `/admin/consumer` |
+
+Exemplo mínimo (PowerShell ou bash com `curl`):
+
+```bash
+curl -s -X POST localhost:8081/api/v1/customers -H "Content-Type: application/json" -d '{"name":"Ana","email":"ana@ex.com"}'
+curl -s -X POST localhost:8082/api/v1/products  -H "Content-Type: application/json" -d '{"sku":"SKU-1","name":"Caneca","price":4990,"initialStock":10}'
+curl -s -X POST localhost:8081/api/v1/orders -H "Content-Type: application/json" -H "Idempotency-Key: k1"   -d '{"customerId":"<id do cliente>","currency":"BRL","items":[{"sku":"SKU-1","quantity":2,"unitPrice":4990}]}'
+curl -s localhost:8081/api/v1/orders/<id>/timeline
 ```
 
 | Serviço | URL |
@@ -50,6 +68,6 @@ mvn verify        # unitários + integração com Kafka e Postgres reais (Testco
 ## Documentação
 
 - [Contrato de eventos](docs/eventos.md): tópicos, headers, versionamento de schema.
-- ADRs: [particionamento](docs/adr/0001-estrategia-de-particionamento.md) · [outbox](docs/adr/0002-outbox-relay-agendado.md) · [captura do audit log](docs/adr/0003-captura-do-audit-log.md) · [SSE](docs/adr/0004-sse-em-vez-de-websocket.md).
+- ADRs: [particionamento](docs/adr/0001-estrategia-de-particionamento.md) · [outbox](docs/adr/0002-outbox-relay-agendado.md) · [captura do audit log](docs/adr/0003-captura-do-audit-log.md) · [SSE](docs/adr/0004-sse-em-vez-de-websocket.md) · [eventos fora de ordem](docs/adr/0005-eventos-fora-de-ordem-no-projetor.md).
 
 Diagrama de arquitetura, roteamento do gateway, trade-offs e "o que faria diferente" serão preenchidos na fase 8.

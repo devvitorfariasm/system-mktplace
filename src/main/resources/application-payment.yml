@@ -1,0 +1,16 @@
+# Profile "payment": processo independente, banco "payments", consumer group "payment-service-v1".
+mktplace:
+  service-name: payment-service
+server:
+  port: 8083
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/payments
+    username: ${POSTGRES_USER:mktplace}
+    password: ${POSTGRES_PASSWORD:mktplace}
+  flyway:
+    locations: classpath:db/commons,classpath:db/migration/payment
+mktplace.payment:
+  approval-rate: 0.8      # ~80% de aprovação
+  latency-min-ms: 1000    # latência simulada de 1 a 3 s
+  latency-max-ms: 3000

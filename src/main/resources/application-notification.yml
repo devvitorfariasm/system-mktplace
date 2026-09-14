@@ -1,0 +1,12 @@
+# Profile "notification": processo independente, banco "notifications", consumer group "notification-service-v1".
+mktplace:
+  service-name: notification-service
+server:
+  port: 8084
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/notifications
+    username: ${POSTGRES_USER:mktplace}
+    password: ${POSTGRES_PASSWORD:mktplace}
+  flyway:
+    locations: classpath:db/commons,classpath:db/migration/notification

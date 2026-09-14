@@ -22,7 +22,8 @@ import java.util.UUID;
  * por JVM e compartilhados pelo contexto Spring cacheado (por isso sem @Container: parar/reiniciar
  * entre classes invalidaria o bootstrap-servers do contexto). Sobe a aplicação real com o profile "test".
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "mktplace.outbox.relay-enabled=false")   // este contexto publica direto; o relay é dos serviços
 @ActiveProfiles("test")
 public abstract class AbstractKafkaIT {
 
@@ -35,6 +36,14 @@ public abstract class AbstractKafkaIT {
     static {
         KAFKA.start();
         POSTGRES.start();
+    }
+
+    public static KafkaContainer kafka() {
+        return KAFKA;
+    }
+
+    public static PostgreSQLContainer postgres() {
+        return POSTGRES;
     }
 
     protected static final Duration TIMEOUT = Duration.ofSeconds(30);

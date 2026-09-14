@@ -1,0 +1,12 @@
+# Profile "audit": processo independente, banco "audit", consumer group "audit-service-v1".
+mktplace:
+  service-name: audit-service
+server:
+  port: 8085
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/audit
+    username: ${POSTGRES_USER:mktplace}
+    password: ${POSTGRES_PASSWORD:mktplace}
+  flyway:
+    locations: classpath:db/commons,classpath:db/migration/audit

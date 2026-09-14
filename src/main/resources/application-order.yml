@@ -1,0 +1,14 @@
+# Profile "order": processo independente, banco "orders", consumer group "order-service-v1".
+mktplace:
+  service-name: order-service
+server:
+  port: 8081
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/orders
+    username: ${POSTGRES_USER:mktplace}
+    password: ${POSTGRES_PASSWORD:mktplace}
+  flyway:
+    locations: classpath:db/commons,classpath:db/migration/order
+  # o projetor de status consome os eventos de resultado com grupo próprio (ver OrderStatusProjector)
+mktplace.audit-url: ${AUDIT_URL:http://localhost:8085}

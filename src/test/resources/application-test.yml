@@ -2,11 +2,21 @@
 mktplace:
   service-name: test-service
   admin-token: secret-test-token
+  audit-url: http://localhost:${local.server.port}   # nos ITs de fluxo, audit e order sobem no mesmo processo
+  outbox:
+    relay-delay-ms: 100
+  payment:
+    approval-rate: 1.0    # determinístico nos testes; o chaos cobre as falhas
+    latency-min-ms: 0
+    latency-max-ms: 0
   kafka:
     backoff-initial-ms: 200
     backoff-multiplier: 2.0
     backoff-max-ms: 500
 spring:
+  flyway:
+    # um único banco de teste recebe as migrations de todos os serviços (prefixos V0, V10, V20... não colidem)
+    locations: classpath:db/commons,classpath:db/migration/order,classpath:db/migration/payment,classpath:db/migration/inventory,classpath:db/migration/notification,classpath:db/migration/audit
   kafka:
     consumer:
       properties:
